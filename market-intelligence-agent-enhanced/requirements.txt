@@ -5,7 +5,13 @@ langchain-community>=0.0.21
 pydantic==2.6.1
 python-multipart==0.0.9
 passlib==1.7.4
-python-jose[cryptography]==3.3.0
 bcrypt==4.1.2
 chromadb==0.4.22
 pandas
+supabase
+langgraph
+google-generativeai
+newsapi-python
+alpha-vantage
+python-dotenv
+PyJWT
