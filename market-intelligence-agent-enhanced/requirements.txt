@@ -1,17 +1,29 @@
 fastapi==0.110.0
-uvicorn==0.27.1
-langchain>=0.1.9
-langchain-community>=0.0.21
-pydantic==2.6.1
-python-multipart==0.0.9
-passlib==1.7.4
-bcrypt==4.1.2
-chromadb==0.4.22
-pandas
-supabase
-langgraph
-google-generativeai
-newsapi-python
-alpha-vantage
+uvicorn[standard]==0.27.1
 python-dotenv
 PyJWT
+passlib[bcrypt]==1.7.4
+requests
+
+# Langchain related
+langchain>=0.1.9
+langchain-community>=0.0.21
+langchain-google-genai
+langgraph
+
+# Vector Database & Embeddings
+chromadb==0.4.22
+sentence-transformers
+
+# API Clients / SDKs
+supabase
+tavily-python
+newsapi-python
+alpha-vantage
+
+# File Processing
+python-multipart==0.0.9
+pandas
+openpyxl
+unstructured[docx,excel]
+Pillow

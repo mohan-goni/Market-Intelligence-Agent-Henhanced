@@ -1,9 +1,10 @@
 import os
-import requests
-import json
-from langchain.tools import Tool
-from typing import Optional, List, Dict, Any
+import requests # Kept for NewsAPI and AlphaVantage, but not Tavily
+import json # Kept for NewsAPI and AlphaVantage
+from langchain.tools import Tool # Kept for NewsAPI and AlphaVantage
+from typing import Optional # List, Dict, Any are not used by the new Tavily tool directly but kept for other tools
 from dotenv import load_dotenv
+from langchain_community.tools.tavily_search import TavilySearchResults # Import official Tavily tool
 
 # Load environment variables - primarily for standalone testing or if this module is used independently.
 # In app.py, dotenv is already loaded.
@@ -166,65 +167,26 @@ alpha_vantage_tool = Tool(
     description="Fetches financial data for a given stock symbol from Alpha Vantage. Useful for getting stock prices (e.g., TIME_SERIES_DAILY_ADJUSTED), company overviews (OVERVIEW), or other financial metrics (e.g., INCOME_STATEMENT, BALANCE_SHEET, EARNINGS). Input should be a stock symbol (e.g., 'MSFT') and optionally the type of data desired (function name like 'OVERVIEW'). Default is 'TIME_SERIES_DAILY_ADJUSTED'."
 )
 
-# --- Tavily API Tool ---
-
-def tavily_search(query: str, search_depth: str = "basic", max_results: int = 5) -> str:
-    """
-    Performs a web search using Tavily API.
-    Useful for finding information on a wide range of topics, research, and general knowledge.
-    Input should be a search query string. Optional: search_depth ('basic' or 'advanced'), max_results (number).
-    """
-    if not TAVILY_API_KEY:
-        return "Error: Tavily API key not configured. Please set the TAVILY_API_KEY environment variable."
-
-    url = "https://api.tavily.com/search"
-    payload = {
-        "api_key": TAVILY_API_KEY,
-        "query": query,
-        "search_depth": search_depth,
-        "include_answer": False, # We are primarily interested in search results content
-        "max_results": max_results
-    }
-
-    try:
-        response = requests.post(url, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        
-        results = data.get("results", [])
-        if not results:
-            return f"No search results found for query: '{query}' using Tavily."
-
-        formatted_results = []
-        for i, result in enumerate(results):
-            title = result.get('title', 'N/A')
-            url = result.get('url', '#')
-            content_snippet = result.get('content', 'N/A')[:500] # Get a snippet of content
-
-            formatted_results.append(
-                f"Result {i+1}:\n"
-                f"  Title: {title}\n"
-                f"  URL: {url}\n"
-                f"  Content Snippet: {content_snippet}...\n"
-            )
-        
-        return "\n".join(formatted_results) + f"\n\nFound {len(results)} search results."
-
-    except requests.exceptions.RequestException as e:
-        return f"Error calling Tavily API: {e}"
-    except json.JSONDecodeError:
-        return "Error: Could not decode JSON response from Tavily API."
-    except Exception as e:
-        return f"An unexpected error occurred during Tavily search: {e}"
-
-tavily_search_tool = Tool(
-    name="TavilySearch",
-    func=tavily_search,
-    description="Performs a comprehensive web search using Tavily API. Useful for finding information on a wide range of topics, research, and general knowledge. Input should be a search query string. You can optionally specify 'search_depth' (e.g., 'basic', 'advanced') and 'max_results' (e.g., 3, 5) by providing a JSON string as input like '{\"query\": \"your query\", \"search_depth\": \"advanced\", \"max_results\": 5}' or just the query string for defaults."
+# --- Official Tavily Search Tool ---
+# The TAVILY_API_KEY is loaded from .env and TavilySearchResults will pick it up automatically.
+tavily_official_search_tool = TavilySearchResults(
+    name="TavilySearchResults", # The tool's default name is 'tavily_search_results_json'
+                               # Overriding to a more generic one or keeping default is an option.
+                               # For agents, a descriptive name helps. Let's stick to the default one.
+                               # name="TavilySearch", # If we want to keep a similar name to the old one.
+    max_results=5,
+    search_depth="advanced", # "advanced" provides more detailed, relevant results for analysis
+    # include_answer=False, # Default is False. Agent can parse answer from results if needed.
+    # description attribute is already well-defined within TavilySearchResults.
+    # We can customize it if needed:
+    # description="A powerful search engine optimized for LLMs. Input is a search query. Useful for finding real-time information, research, and general knowledge.",
 )
+# To ensure compatibility if 'tavily_search_tool' was used elsewhere, but we're changing the list name.
+# tavily_search_tool = tavily_official_search_tool # Alias if needed, but better to update all_tools.
+
 
 # --- List of all tools ---
-all_tools = [news_tool, alpha_vantage_tool, tavily_search_tool]
+all_tools = [news_tool, alpha_vantage_tool, tavily_official_search_tool] # Updated list
 
 # Example Usage (for testing this file directly)
 # if __name__ == "__main__":
@@ -248,25 +210,24 @@ all_tools = [news_tool, alpha_vantage_tool, tavily_search_tool]
 #     # print("\n")
 
 
-#     # Test Tavily Search
-#     print("--- Tavily Search Test ---")
-#     # tavily_result_basic = tavily_search("latest advancements in quantum computing", max_results=3)
-#     # print(tavily_result_basic)
-#     # print("\n")
-    
-#     # Example of JSON input for Tavily (if needed, though func now has typed args)
-#     # tavily_result_advanced = tavily_search('{"query": "market sentiment for EV stocks", "search_depth": "advanced", "max_results": 3}')
-#     # print(tavily_result_advanced)
-#     # print("\n")
-#     tavily_direct_call = tavily_search(query="impact of AI on software development jobs", search_depth="advanced", max_results=2)
-#     print(tavily_direct_call)
+#     # Test Tavily Search (Official Tool)
+#     print("--- Tavily Search Official Tool Test ---")
+#     # The official tool takes a string directly. For keyword arguments like search_depth,
+#     # they are set at instantiation or the agent needs to provide a structured input if the tool supports it.
+#     # The default TavilySearchResults takes a single string query.
+#     tavily_result = tavily_official_search_tool.run("impact of AI on software development jobs")
+#     print(tavily_result)
+#     print("\n")
 
-#     # Test using the Tool interface
-#     # print("--- Tool Interface Test ---")
-#     # print(news_tool.run("NVIDIA quarterly earnings"))
-#     # print(alpha_vantage_tool.run("AAPL")) # Default TIME_SERIES_DAILY_ADJUSTED
-#     # print(alpha_vantage_tool.run('{"symbol": "TSLA", "function": "OVERVIEW"}')) # JSON input for more control
-#     # print(tavily_search_tool.run("future of renewable energy"))
-#     # print(tavily_search_tool.run('{"query": "best python libraries for data science", "max_results": 2}'))
+    # Test using the Tool interface
+    # print("--- Tool Interface Test ---")
+    # print(news_tool.run("NVIDIA quarterly earnings"))
+    # print(alpha_vantage_tool.run("AAPL")) # Default TIME_SERIES_DAILY_ADJUSTED
+    # print(alpha_vantage_tool.run('{"symbol": "TSLA", "function": "OVERVIEW"}')) # JSON input for more control
+    # print(tavily_official_search_tool.run("future of renewable energy"))
+    # # To pass specific kwargs to the official tool if it's designed to parse them from a dict:
+    # # print(tavily_official_search_tool.run({"query": "best python libraries for data science", "max_results": 2}))
+    # # However, TavilySearchResults usually expects just the query string for `run`.
+    # # The `max_results` etc. are config on the object.
 
 ```

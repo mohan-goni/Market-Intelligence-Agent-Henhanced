@@ -174,7 +174,7 @@ start_backend() {
   fi
   
   # Start the server in the background
-  python app_integrated.py &
+  uvicorn app:app --host 0.0.0.0 --port 8000 &
   BACKEND_PID=$!
   
   # Check if server started successfully

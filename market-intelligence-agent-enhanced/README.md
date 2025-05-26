@@ -33,24 +33,30 @@ Market Intelligence Agent is a full-stack application that provides advanced mar
 ## Project Structure
 
 ```
-market_intelligence_project/
+market-intelligence-agent-enhanced/
+├── .env.example               # Example environment variables
+├── .gitignore                 # Git ignore file
+├── app.py                     # FastAPI backend application
+├── enhancement_plan.md        # Document outlining planned enhancements
 ├── frontend/                  # React TypeScript frontend
 │   └── market-intel-ui/
 │       ├── public/            # Static assets
-│       ├── src/
+│       ├── src/               # Frontend source code
 │       │   ├── components/    # Reusable UI components
 │       │   ├── contexts/      # React contexts (auth, etc.)
 │       │   ├── hooks/         # Custom React hooks
 │       │   ├── pages/         # Page components
 │       │   ├── services/      # API service functions
-│       │   ├── tests/         # Frontend tests
 │       │   └── utils/         # Utility functions
 │       ├── package.json       # Frontend dependencies
-│       └── tsconfig.json      # TypeScript configuration
-├── MIA.py                     # Market Intelligence Agent core
-├── app.py                     # FastAPI backend application
-├── requirements.txt           # Python dependencies
-└── README.md                  # Project documentation
+│       └── vite.config.ts     # Vite configuration
+├── langchain_tools.py         # Custom Langchain tools for external APIs
+├── langgraph_chat.py          # Langgraph chat flow implementation
+├── requirements.txt           # Python backend dependencies
+├── setup_and_run.sh           # Script to setup and run the application
+├── supabase_client.py         # Supabase client utilities
+├── validation_report.md       # Report on testing and validation
+└── README.md                  # This file
 ```
 
 ## Getting Started
@@ -66,18 +72,19 @@ market_intelligence_project/
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/market-intelligence-agent.git
-cd market-intelligence-agent
+git clone https://github.com/yourusername/market-intelligence-agent.git # Replace with actual repo URL
+cd market-intelligence-agent-enhanced
 ```
 
 2. **Set up the backend**
 
+   (Ensure you are in the `market-intelligence-agent-enhanced` directory)
 ```bash
 # Create and activate a virtual environment
-python -m venv venv
+python3 -m venv venv  # Use python3 explicitly if needed
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies from within the market-intelligence-agent-enhanced directory
 pip install -r requirements.txt
 ```
 
@@ -92,7 +99,7 @@ npm install  # or yarn install
 
 1. **API Keys**
 
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the `market-intelligence-agent-enhanced` directory (you can copy from `.env.example`):
 
 ```
 SECRET_KEY=your_jwt_secret_key
@@ -115,8 +122,9 @@ REACT_APP_API_URL=http://localhost:8000
 1. **Start the backend**
 
 ```bash
-# From the root directory
-uvicorn app:app --reload
+# From the market-intelligence-agent-enhanced directory
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload 
+# Or run the setup_and_run.sh script which handles this.
 ```
 
 2. **Start the frontend**
@@ -128,17 +136,7 @@ npm start  # or yarn start
 
 3. **Access the application**
 
-Open your browser and navigate to `http://localhost:3000`
-
-## Default Credentials
-
-For testing purposes, the following credentials are pre-configured:
-
-- **Email**: test@example.com
-- **Password**: password
-
-- **Admin Email**: marketintelligenceagent@gmail.com
-- **Admin Password**: admin123
+Open your browser and navigate to `http://localhost:3000` (or the port specified by Vite, usually 5173 if 3000 is taken)
 
 ## API Documentation
 
@@ -154,13 +152,6 @@ Once the backend is running, you can access the API documentation at:
 ```bash
 cd frontend/market-intel-ui
 npm test  # or yarn test
-```
-
-### Backend Tests
-
-```bash
-# From the root directory
-pytest
 ```
 
 ## Deployment
